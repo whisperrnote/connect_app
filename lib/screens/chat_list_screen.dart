@@ -12,7 +12,8 @@ import 'chat_detail_screen.dart';
 import '../core/theme/glass_route.dart';
 
 class ChatListScreen extends StatelessWidget {
-  const ChatListScreen({super.key});
+  final bool isDesktop;
+  const ChatListScreen({super.key, this.isDesktop = false});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +68,7 @@ class ChatListScreen extends StatelessWidget {
                           Text(
                             'Messages',
                             style: GoogleFonts.spaceGrotesk(
-                              fontSize: 28,
+                              fontSize: isDesktop ? 36 : 28,
                               fontWeight: FontWeight.bold,
                               color: AppColors.titanium,
                               height: 1.1,
@@ -77,20 +78,26 @@ class ChatListScreen extends StatelessWidget {
                       ),
                       Row(
                         children: [
+                          if (isDesktop) ...[
+                            _DesktopHeaderAction(LucideIcons.messageSquare, () {
+                              // New message logic
+                            }, isPrimary: true),
+                            const SizedBox(width: 8),
+                          ],
                           Container(
                             decoration: BoxDecoration(
-                              color: AppColors.surface2,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.borderSubtle),
+                               color: AppColors.surface2,
+                               borderRadius: BorderRadius.circular(12),
+                               border: Border.all(color: AppColors.borderSubtle),
                             ),
                             child: IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  GlassRoute(page: const DiscoverScreen()),
-                                );
-                              },
-                              icon: const Icon(LucideIcons.globe, size: 20, color: AppColors.electric),
+                               onPressed: () {
+                                 Navigator.push(
+                                   context,
+                                   GlassRoute(page: const DiscoverScreen()),
+                                 );
+                               },
+                               icon: const Icon(LucideIcons.globe, size: 20, color: AppColors.electric),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -127,7 +134,7 @@ class ChatListScreen extends StatelessWidget {
 
                 // Search
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                  padding: EdgeInsets.fromLTRB(24, isDesktop ? 32 : 24, 24, 16),
                   child: GlassCard(
                     opacity: 0.4,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -165,42 +172,90 @@ class ChatListScreen extends StatelessWidget {
 
                 // List
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: 8,
-                    itemBuilder: (context, index) {
-                      return _buildChatTile(context, index);
-                    },
-                  ),
+                  child: isDesktop 
+                    ? _buildDesktopGrid()
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        itemCount: 8,
+                        itemBuilder: (context, index) {
+                          return _buildChatTile(context, index);
+                        },
+                      ),
                 ),
               ],
             ),
           ),
         ],
       ),
-      floatingActionButton: Container(
-        height: 64, width: 64,
-        decoration: BoxDecoration(
-          color: AppColors.electric,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.electric.withOpacity(0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          highlightElevation: 0,
-          child: const Icon(LucideIcons.messageCircle, color: AppColors.voidBg, size: 28),
-        ),
+      floatingActionButton: isDesktop ? null : _buildMobileFAB(),
+    );
+  }
+
+  Widget _buildDesktopGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 3.5,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: 12,
+      itemBuilder: (context, index) {
+        return _buildChatTile(context, index);
+      },
+    );
+  }
+
+  Widget _buildMobileFAB() {
+    return Container(
+      height: 64, width: 64,
+      decoration: BoxDecoration(
+        color: AppColors.electric,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.electric.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        highlightElevation: 0,
+        child: const Icon(LucideIcons.messageCircle, color: AppColors.voidBg, size: 28),
       ),
     );
   }
+}
+
+class _DesktopHeaderAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isPrimary;
+
+  const _DesktopHeaderAction(this.icon, this.onTap, {this.isPrimary = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.electric : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isPrimary ? AppColors.electric : AppColors.borderSubtle),
+        ),
+        child: Icon(icon, size: 16, color: isPrimary ? AppColors.voidBg : AppColors.electric),
+      ),
+    );
+  }
+}
+
 
   Widget _buildTab(String label, bool isActive) {
     return Container(
