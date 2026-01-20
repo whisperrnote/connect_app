@@ -8,6 +8,8 @@ import '../widgets/glass_card.dart';
 
 import 'settings_screen.dart';
 import 'discover_screen.dart';
+import 'chat_detail_screen.dart';
+import '../core/theme/glass_route.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -85,7 +87,7 @@ class ChatListScreen extends StatelessWidget {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const DiscoverScreen()),
+                                  GlassRoute(page: const DiscoverScreen()),
                                 );
                               },
                               icon: const Icon(LucideIcons.globe, size: 20, color: AppColors.electric),
@@ -96,7 +98,7 @@ class ChatListScreen extends StatelessWidget {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                                GlassRoute(page: const SettingsScreen()),
                               );
                             },
                             child: Container(
@@ -230,7 +232,7 @@ class ChatListScreen extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ChatDetailScreen()),
+            GlassRoute(page: const ChatDetailScreen()),
           );
         },
         borderRadius: BorderRadius.circular(20),
