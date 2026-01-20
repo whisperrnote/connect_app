@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../core/theme/colors.dart';
 
-import '../widgets/glass_card.dart';
+import 'call_screen.dart';
+import '../core/theme/glass_route.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   const ChatDetailScreen({super.key});
@@ -92,7 +93,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       const Spacer(),
                       IconButton(
                         icon: const Icon(LucideIcons.phone, color: AppColors.gunmetal, size: 20),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            GlassRoute(page: const CallScreen(name: 'John Doe')),
+                          );
+                        },
                       ),
                       IconButton(
                         icon: const Icon(LucideIcons.moreVertical, color: AppColors.gunmetal, size: 20),
