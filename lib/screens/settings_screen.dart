@@ -110,7 +110,7 @@ class SettingsScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             Text(
-                              'WHISPERRNOTE v1.0.0',
+                              'WHISPERRCONNECT v1.0.0',
                               style: GoogleFonts.spaceMono(
                                 fontSize: 10,
                                 color: AppColors.gunmetal,
@@ -119,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'End-to-End Encrypted second brain.',
+                              'Peer-to-peer secure communication.',
                               style: GoogleFonts.inter(
                                 fontSize: 10,
                                 color: AppColors.gunmetal.withOpacity(0.5),

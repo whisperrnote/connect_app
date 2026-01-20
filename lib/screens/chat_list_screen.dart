@@ -6,6 +6,9 @@ import 'chat_detail_screen.dart';
 
 import '../widgets/glass_card.dart';
 
+import 'settings_screen.dart';
+import 'discover_screen.dart';
+
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
@@ -70,16 +73,51 @@ class ChatListScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface2,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.borderSubtle),
-                        ),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: const Icon(LucideIcons.edit3, size: 20, color: AppColors.electric),
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface2,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderSubtle),
+                            ),
+                            child: IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const DiscoverScreen()),
+                                );
+                              },
+                              icon: const Icon(LucideIcons.globe, size: 20, color: AppColors.electric),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                              );
+                            },
+                            child: Container(
+                              width: 40, height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.electric,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.voidBg, width: 2),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'U',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.voidBg,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
