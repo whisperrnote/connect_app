@@ -7,7 +7,7 @@ import '../core/theme/colors.dart';
 import 'chat_detail_screen.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/services/chat_service.dart';
-import '../core/models/chat_model.dart';
+import '../core/models/conversation_model.dart';
 import '../widgets/glass_card.dart';
 import 'settings_screen.dart';
 import 'discover_screen.dart';
@@ -23,7 +23,7 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> {
   final ChatService _chatService = ChatService();
-  List<Chat> _chats = [];
+  List<Conversation> _conversations = [];
   bool _isLoading = true;
 
   @override
@@ -36,9 +36,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     if (authProvider.user != null) {
       try {
-        final chats = await _chatService.listChats(authProvider.user!.$id);
+        final conversations = await _chatService.listConversations(
+          authProvider.user!.$id,
+        );
         setState(() {
-          _chats = chats;
+          _conversations = conversations;
           _isLoading = false;
         });
       } catch (e) {
@@ -243,7 +245,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               color: AppColors.electric,
                             ),
                           )
-                        : _chats.isEmpty
+                        : _conversations.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -267,11 +269,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         ? _buildDesktopGrid()
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: _chats.length,
+                            itemCount: _conversations.length,
                             itemBuilder: (context, index) {
                               return _buildChatTile(
                                 context,
-                                _chats[index],
+                                _conversations[index],
                                 index,
                               );
                             },
@@ -296,9 +298,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: _chats.length,
+      itemCount: _conversations.length,
       itemBuilder: (context, index) {
-        return _buildChatTile(context, _chats[index], index);
+        return _buildChatTile(context, _conversations[index], index);
       },
     );
   }

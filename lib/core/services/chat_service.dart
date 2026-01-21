@@ -1,35 +1,38 @@
 import 'package:appwrite/appwrite.dart';
 import '../constants/appwrite_constants.dart';
 import 'appwrite_service.dart';
-import '../models/chat_model.dart';
+import '../models/conversation_model.dart';
+import '../models/message_model.dart';
 
 class ChatService {
   final Databases _databases = AppwriteService().databases;
   final Realtime _realtime = AppwriteService().realtime;
 
-  Future<List<Chat>> listChats(String userId) async {
+  Future<List<Conversation>> listConversations(String userId) async {
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.chatsCollectionId,
+        collectionId: AppwriteConstants.conversationsCollectionId,
         queries: [
-          Query.contains('participantIds', [userId]),
-          Query.orderDesc('\$updatedAt'),
+          Query.contains('participants', [userId]),
+          Query.orderDesc('updatedAt'),
         ],
       );
-      return response.documents.map((doc) => Chat.fromJson(doc.data)).toList();
+      return response.documents
+          .map((doc) => Conversation.fromJson(doc.data))
+          .toList();
     } catch (e) {
-      throw Exception('Failed to list chats: $e');
+      throw Exception('Failed to list conversations: $e');
     }
   }
 
-  Future<List<Message>> listMessages(String chatId) async {
+  Future<List<Message>> listMessages(String conversationId) async {
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
         collectionId: AppwriteConstants.messagesCollectionId,
         queries: [
-          Query.equal('chatId', chatId),
+          Query.equal('conversationId', conversationId),
           Query.orderDesc('\$createdAt'),
         ],
       );
@@ -42,11 +45,11 @@ class ChatService {
   }
 
   Future<Message> sendMessage({
-    required String chatId,
+    required String conversationId,
     required String senderId,
-    required String receiverId,
     required String content,
     String type = 'text',
+    List<String>? attachments,
   }) async {
     try {
       final doc = await _databases.createDocument(
@@ -54,22 +57,22 @@ class ChatService {
         collectionId: AppwriteConstants.messagesCollectionId,
         documentId: ID.unique(),
         data: {
-          'chatId': chatId,
+          'conversationId': conversationId,
           'senderId': senderId,
-          'receiverId': receiverId,
           'content': content,
           'type': type,
-          'createdAt': DateTime.now().toIso8601String(),
+          'attachments': attachments,
         },
       );
 
-      // Update chat's last message and updatedAt
+      // Update conversation's last message and updatedAt
       await _databases.updateDocument(
         databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.chatsCollectionId,
-        documentId: chatId,
+        collectionId: AppwriteConstants.conversationsCollectionId,
+        documentId: conversationId,
         data: {
-          'lastMessage': doc.data,
+          'lastMessageId': doc.$id,
+          'lastMessageAt': DateTime.now().toIso8601String(),
           'updatedAt': DateTime.now().toIso8601String(),
         },
       );
@@ -80,31 +83,38 @@ class ChatService {
     }
   }
 
-  RealtimeSubscription subscribeToMessages(String chatId) {
+  RealtimeSubscription subscribeToMessages(String conversationId) {
     return _realtime.subscribe([
       'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.messagesCollectionId}.documents',
     ]);
   }
 
-  Future<Chat> createChat(List<String> participantIds) async {
+  Future<Conversation> createConversation({
+    required List<String> participants,
+    String type = 'direct',
+    String? name,
+    String? avatar,
+  }) async {
     try {
       final doc = await _databases.createDocument(
         databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.chatsCollectionId,
+        collectionId: AppwriteConstants.conversationsCollectionId,
         documentId: ID.unique(),
         data: {
-          'participantIds': participantIds,
-          'createdAt': DateTime.now().toIso8601String(),
+          'participants': participants,
+          'type': type,
+          'name': name,
+          'avatar': avatar,
           'updatedAt': DateTime.now().toIso8601String(),
         },
         permissions: [
-          ...participantIds.map((id) => Permission.read(Role.user(id))),
-          ...participantIds.map((id) => Permission.update(Role.user(id))),
+          ...participants.map((id) => Permission.read(Role.user(id))),
+          ...participants.map((id) => Permission.update(Role.user(id))),
         ],
       );
-      return Chat.fromJson(doc.data);
+      return Conversation.fromJson(doc.data);
     } catch (e) {
-      throw Exception('Failed to create chat: $e');
+      throw Exception('Failed to create conversation: $e');
     }
   }
 }
