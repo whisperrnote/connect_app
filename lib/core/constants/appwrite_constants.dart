@@ -5,15 +5,16 @@ class AppwriteConstants {
 
   // Collections
   static const String usersCollectionId = '67ff05c900247b5673d3';
-  static const String chatsCollectionId =
-      '67ff05f3002502ef239e'; // Linked to Chats in Connect
+  static const String conversationsCollectionId = 'conversations';
   static const String messagesCollectionId = 'messages';
-  static const String callsCollectionId = 'calls';
-  static const String commentsCollectionId = 'comments';
-  static const String reactionsCollectionId = 'reactions';
+  static const String callLogsCollectionId = 'callLogs';
+  static const String followsCollectionId = 'follows';
+  static const String momentsCollectionId = 'moments';
+  static const String interactionsCollectionId = 'interactions';
   static const String activityLogCollectionId = 'activityLog';
 
   // Buckets
   static const String profilePicturesBucketId = 'profile_pictures';
-  static const String notesAttachmentsBucketId = 'notes_attachments';
+  static const String messageAttachmentsBucketId = 'message_attachments';
+  static const String momentMediaBucketId = 'moment_media';
 }
