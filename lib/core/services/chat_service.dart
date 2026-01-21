@@ -85,4 +85,26 @@ class ChatService {
       'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.messagesCollectionId}.documents',
     ]);
   }
+
+  Future<Chat> createChat(List<String> participantIds) async {
+    try {
+      final doc = await _databases.createDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.chatsCollectionId,
+        documentId: ID.unique(),
+        data: {
+          'participantIds': participantIds,
+          'createdAt': DateTime.now().toIso8601String(),
+          'updatedAt': DateTime.now().toIso8601String(),
+        },
+        permissions: [
+          ...participantIds.map((id) => Permission.read(Role.user(id))),
+          ...participantIds.map((id) => Permission.update(Role.user(id))),
+        ],
+      );
+      return Chat.fromJson(doc.data);
+    } catch (e) {
+      throw Exception('Failed to create chat: $e');
+    }
+  }
 }
