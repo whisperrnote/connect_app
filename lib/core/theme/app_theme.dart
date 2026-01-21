@@ -8,7 +8,7 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.voidBg,
-      
+
       colorScheme: const ColorScheme.dark(
         primary: AppColors.electric,
         secondary: AppColors.electric,
@@ -63,7 +63,7 @@ class AppTheme {
         iconTheme: IconThemeData(color: AppColors.titanium),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surface.withOpacity(0.95),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
@@ -109,7 +109,10 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         hintStyle: GoogleFonts.inter(color: AppColors.gunmetal),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.borderSubtle),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../core/theme/colors.dart';
+import '../widgets/glass_card.dart';
 
 import 'call_screen.dart';
 import '../core/theme/glass_route.dart';
@@ -16,10 +17,27 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Message> _messages = [
-    Message(content: 'Hey there! How is the project going?', isMe: false, time: '10:00 AM'),
-    Message(content: 'Making great progress. The Flutter port is coming along nicely.', isMe: true, time: '10:05 AM'),
-    Message(content: 'That is awesome to hear! Did you implement the biometric auth?', isMe: false, time: '10:06 AM'),
-    Message(content: 'Yes, just finished mirroring the UI flows.', isMe: true, time: '10:08 AM'),
+    Message(
+      content: 'Hey there! How is the project going?',
+      isMe: false,
+      time: '10:00 AM',
+    ),
+    Message(
+      content:
+          'Making great progress. The Flutter port is coming along nicely.',
+      isMe: true,
+      time: '10:05 AM',
+    ),
+    Message(
+      content: 'That is awesome to hear! Did you implement the biometric auth?',
+      isMe: false,
+      time: '10:06 AM',
+    ),
+    Message(
+      content: 'Yes, just finished mirroring the UI flows.',
+      isMe: true,
+      time: '10:08 AM',
+    ),
   ];
 
   @override
@@ -35,12 +53,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 GlassCard(
                   borderRadius: BorderRadius.zero,
                   opacity: 0.8,
-                  border: const Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  border: const Border(
+                    bottom: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(LucideIcons.arrowLeft, color: AppColors.gunmetal, size: 20),
+                        icon: const Icon(
+                          LucideIcons.arrowLeft,
+                          color: AppColors.gunmetal,
+                          size: 20,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const SizedBox(width: 8),
@@ -54,8 +81,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            'JD', 
-                            style: GoogleFonts.spaceGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.electric)
+                            'JD',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.electric,
+                            ),
                           ),
                         ),
                       ),
@@ -74,8 +105,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           Row(
                             children: [
                               Container(
-                                width: 6, height: 6,
-                                decoration: const BoxDecoration(color: AppColors.electric, shape: BoxShape.circle),
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.electric,
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                               const SizedBox(width: 6),
                               Text(
@@ -92,16 +127,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(LucideIcons.phone, color: AppColors.gunmetal, size: 20),
+                        icon: const Icon(
+                          LucideIcons.phone,
+                          color: AppColors.gunmetal,
+                          size: 20,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
-                            GlassRoute(page: const CallScreen(name: 'John Doe')),
+                            GlassRoute(
+                              page: const CallScreen(name: 'John Doe'),
+                            ),
                           );
                         },
                       ),
                       IconButton(
-                        icon: const Icon(LucideIcons.moreVertical, color: AppColors.gunmetal, size: 20),
+                        icon: const Icon(
+                          LucideIcons.moreVertical,
+                          color: AppColors.gunmetal,
+                          size: 20,
+                        ),
                         onPressed: () {},
                       ),
                     ],
@@ -125,7 +170,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 GlassCard(
                   borderRadius: BorderRadius.zero,
                   opacity: 0.9,
-                  border: const Border(top: BorderSide(color: AppColors.borderSubtle)),
+                  border: const Border(
+                    top: BorderSide(color: AppColors.borderSubtle),
+                  ),
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                   child: Row(
                     children: [
@@ -140,12 +187,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           ),
                           child: TextField(
                             controller: _controller,
-                            style: GoogleFonts.inter(color: AppColors.titanium, fontSize: 14),
+                            style: GoogleFonts.inter(
+                              color: AppColors.titanium,
+                              fontSize: 14,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'Transmit message...',
-                              hintStyle: GoogleFonts.inter(color: AppColors.gunmetal, fontSize: 14),
+                              hintStyle: GoogleFonts.inter(
+                                color: AppColors.gunmetal,
+                                fontSize: 14,
+                              ),
                               border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -155,22 +211,29 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         onTap: () {
                           if (_controller.text.isNotEmpty) {
                             setState(() {
-                              _messages.add(Message(
-                                content: _controller.text, 
-                                isMe: true, 
-                                time: 'JUST NOW'
-                              ));
+                              _messages.add(
+                                Message(
+                                  content: _controller.text,
+                                  isMe: true,
+                                  time: 'JUST NOW',
+                                ),
+                              );
                               _controller.clear();
                             });
                           }
                         },
                         child: Container(
-                          width: 44, height: 44,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: AppColors.electric,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(LucideIcons.send, color: AppColors.voidBg, size: 18),
+                          child: const Icon(
+                            LucideIcons.send,
+                            color: AppColors.voidBg,
+                            size: 18,
+                          ),
                         ),
                       ),
                     ],
@@ -186,7 +249,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Widget _buildInputAction(IconData icon) {
     return Container(
-      width: 40, height: 40,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         color: AppColors.surface2,
         borderRadius: BorderRadius.circular(12),
@@ -202,7 +266,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       child: Align(
         alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: msg.isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Container(
               constraints: const BoxConstraints(maxWidth: 280),
@@ -212,10 +278,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
-                  bottomLeft: msg.isMe ? const Radius.circular(20) : const Radius.circular(4),
-                  bottomRight: msg.isMe ? const Radius.circular(4) : const Radius.circular(20),
+                  bottomLeft: msg.isMe
+                      ? const Radius.circular(20)
+                      : const Radius.circular(4),
+                  bottomRight: msg.isMe
+                      ? const Radius.circular(4)
+                      : const Radius.circular(20),
                 ),
-                border: msg.isMe ? null : Border.all(color: AppColors.borderSubtle),
+                border: msg.isMe
+                    ? null
+                    : Border.all(color: AppColors.borderSubtle),
               ),
               child: Text(
                 msg.content,
