@@ -1,22 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../core/theme/colors.dart';
 import 'chat_detail_screen.dart';
-
+import '../core/providers/auth_provider.dart';
+import '../core/services/chat_service.dart';
+import '../core/models/chat_model.dart';
 import '../widgets/glass_card.dart';
-
 import 'settings_screen.dart';
 import 'discover_screen.dart';
-import 'chat_detail_screen.dart';
 import '../core/theme/glass_route.dart';
 
-class ChatListScreen extends StatelessWidget {
+class ChatListScreen extends StatefulWidget {
   final bool isDesktop;
   const ChatListScreen({super.key, this.isDesktop = false});
 
   @override
+  State<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends State<ChatListScreen> {
+  final ChatService _chatService = ChatService();
+  List<Chat> _chats = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchChats();
+  }
+
+  Future<void> _fetchChats() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    if (authProvider.user != null) {
+      try {
+        final chats = await _chatService.listChats(authProvider.user!.$id);
+        setState(() {
+          _chats = chats;
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: AppColors.voidBg,
       body: Stack(
@@ -47,8 +81,13 @@ class ChatListScreen extends StatelessWidget {
                 GlassCard(
                   borderRadius: BorderRadius.zero,
                   opacity: 0.8,
-                  border: const Border(bottom: BorderSide(color: AppColors.borderSubtle)),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  border: const Border(
+                    bottom: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 20,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -68,7 +107,7 @@ class ChatListScreen extends StatelessWidget {
                           Text(
                             'Messages',
                             style: GoogleFonts.spaceGrotesk(
-                              fontSize: isDesktop ? 36 : 28,
+                              fontSize: widget.isDesktop ? 36 : 28,
                               fontWeight: FontWeight.bold,
                               color: AppColors.titanium,
                               height: 1.1,
@@ -78,7 +117,7 @@ class ChatListScreen extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          if (isDesktop) ...[
+                          if (widget.isDesktop) ...[
                             _DesktopHeaderAction(LucideIcons.messageSquare, () {
                               // New message logic
                             }, isPrimary: true),
@@ -86,18 +125,22 @@ class ChatListScreen extends StatelessWidget {
                           ],
                           Container(
                             decoration: BoxDecoration(
-                               color: AppColors.surface2,
-                               borderRadius: BorderRadius.circular(12),
-                               border: Border.all(color: AppColors.borderSubtle),
+                              color: AppColors.surface2,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderSubtle),
                             ),
                             child: IconButton(
-                               onPressed: () {
-                                 Navigator.push(
-                                   context,
-                                   GlassRoute(page: const DiscoverScreen()),
-                                 );
-                               },
-                               icon: const Icon(LucideIcons.globe, size: 20, color: AppColors.electric),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  GlassRoute(page: const DiscoverScreen()),
+                                );
+                              },
+                              icon: const Icon(
+                                LucideIcons.globe,
+                                size: 20,
+                                color: AppColors.electric,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -109,15 +152,22 @@ class ChatListScreen extends StatelessWidget {
                               );
                             },
                             child: Container(
-                              width: 40, height: 40,
+                              width: 40,
+                              height: 40,
                               decoration: BoxDecoration(
                                 color: AppColors.electric,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.voidBg, width: 2),
+                                border: Border.all(
+                                  color: AppColors.voidBg,
+                                  width: 2,
+                                ),
                               ),
                               child: Center(
                                 child: Text(
-                                  'U',
+                                  authProvider.user?.name
+                                          .substring(0, 1)
+                                          .toUpperCase() ??
+                                      'U',
                                   style: GoogleFonts.spaceGrotesk(
                                     fontWeight: FontWeight.bold,
                                     color: AppColors.voidBg,
@@ -134,7 +184,12 @@ class ChatListScreen extends StatelessWidget {
 
                 // Search
                 Padding(
-                  padding: EdgeInsets.fromLTRB(24, isDesktop ? 32 : 24, 24, 16),
+                  padding: EdgeInsets.fromLTRB(
+                    24,
+                    widget.isDesktop ? 32 : 24,
+                    24,
+                    16,
+                  ),
                   child: GlassCard(
                     opacity: 0.4,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -143,11 +198,17 @@ class ChatListScreen extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: 'Search encrypted channels...',
                         hintStyle: GoogleFonts.inter(color: AppColors.gunmetal),
-                        prefixIcon: const Icon(LucideIcons.search, color: AppColors.gunmetal, size: 18),
+                        prefixIcon: const Icon(
+                          LucideIcons.search,
+                          color: AppColors.gunmetal,
+                          size: 18,
+                        ),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -172,22 +233,57 @@ class ChatListScreen extends StatelessWidget {
 
                 // List
                 Expanded(
-                  child: isDesktop 
-                    ? _buildDesktopGrid()
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        itemCount: 8,
-                        itemBuilder: (context, index) {
-                          return _buildChatTile(context, index);
-                        },
-                      ),
+                  child: RefreshIndicator(
+                    onRefresh: _fetchChats,
+                    color: AppColors.electric,
+                    backgroundColor: AppColors.surface,
+                    child: _isLoading
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.electric,
+                            ),
+                          )
+                        : _chats.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  LucideIcons.messageSquare,
+                                  size: 48,
+                                  color: AppColors.gunmetal,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No conversations yet.',
+                                  style: GoogleFonts.inter(
+                                    color: AppColors.gunmetal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : widget.isDesktop
+                        ? _buildDesktopGrid()
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            itemCount: _chats.length,
+                            itemBuilder: (context, index) {
+                              return _buildChatTile(
+                                context,
+                                _chats[index],
+                                index,
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-      floatingActionButton: isDesktop ? null : _buildMobileFAB(),
+      floatingActionButton: widget.isDesktop ? null : _buildMobileFAB(),
     );
   }
 
@@ -200,16 +296,17 @@ class ChatListScreen extends StatelessWidget {
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: 12,
+      itemCount: _chats.length,
       itemBuilder: (context, index) {
-        return _buildChatTile(context, index);
+        return _buildChatTile(context, _chats[index], index);
       },
     );
   }
 
   Widget _buildMobileFAB() {
     return Container(
-      height: 64, width: 64,
+      height: 64,
+      width: 64,
       decoration: BoxDecoration(
         color: AppColors.electric,
         borderRadius: BorderRadius.circular(20),
@@ -226,36 +323,14 @@ class ChatListScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         highlightElevation: 0,
-        child: const Icon(LucideIcons.messageCircle, color: AppColors.voidBg, size: 28),
-      ),
-    );
-  }
-}
-
-class _DesktopHeaderAction extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isPrimary;
-
-  const _DesktopHeaderAction(this.icon, this.onTap, {this.isPrimary = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          color: isPrimary ? AppColors.electric : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isPrimary ? AppColors.electric : AppColors.borderSubtle),
+        child: const Icon(
+          LucideIcons.messageCircle,
+          color: AppColors.voidBg,
+          size: 28,
         ),
-        child: Icon(icon, size: 16, color: isPrimary ? AppColors.voidBg : AppColors.electric),
       ),
     );
   }
-}
-
 
   Widget _buildTab(String label, bool isActive) {
     return Container(
@@ -265,7 +340,9 @@ class _DesktopHeaderAction extends StatelessWidget {
       decoration: BoxDecoration(
         color: isActive ? AppColors.electric : AppColors.surface2,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isActive ? AppColors.electric : AppColors.borderSubtle),
+        border: Border.all(
+          color: isActive ? AppColors.electric : AppColors.borderSubtle,
+        ),
       ),
       child: Text(
         label,
@@ -278,17 +355,19 @@ class _DesktopHeaderAction extends StatelessWidget {
     );
   }
 
-  Widget _buildChatTile(BuildContext context, int index) {
-    final bool isUnread = index < 2;
-    
+  Widget _buildChatTile(BuildContext context, Chat chat, int index) {
+    final bool isUnread = index < 2; // Placeholder for unread state
+    final String lastMessageText =
+        chat.lastMessage?.content ?? 'Start a conversation';
+    final String participantName = chat.participantIds.length > 1
+        ? 'Channel'
+        : 'Contact'; // Placeholder
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            GlassRoute(page: const ChatDetailScreen()),
-          );
+          Navigator.push(context, GlassRoute(page: const ChatDetailScreen()));
         },
         borderRadius: BorderRadius.circular(20),
         child: GlassCard(
@@ -309,7 +388,7 @@ class _DesktopHeaderAction extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        index == 0 ? 'JD' : 'AS',
+                        participantName.substring(0, 1),
                         style: GoogleFonts.spaceGrotesk(
                           fontWeight: FontWeight.bold,
                           color: AppColors.titanium,
@@ -317,25 +396,24 @@ class _DesktopHeaderAction extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (index == 0) // Online status
-                    Positioned(
-                      right: 2,
-                      bottom: 2,
-                      child: Container(
-                        width: 12,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: AppColors.electric,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.voidBg, width: 2),
-                        ),
+                  Positioned(
+                    right: 2,
+                    bottom: 2,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: AppColors.electric,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.voidBg, width: 2),
                       ),
                     ),
+                  ),
                 ],
               ),
-              
+
               const SizedBox(width: 16),
-  
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -344,33 +422,41 @@ class _DesktopHeaderAction extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          index == 0 ? 'John Doe' : 'Alice Smith',
+                          participantName,
                           style: GoogleFonts.inter(
-                            fontWeight: isUnread ? FontWeight.w700 : FontWeight.w600,
+                            fontWeight: isUnread
+                                ? FontWeight.w700
+                                : FontWeight.w600,
                             color: AppColors.titanium,
                             fontSize: 15,
                           ),
                         ),
                         Text(
-                          '10:42 AM',
+                          '10:42 AM', // Placeholder
                           style: GoogleFonts.inter(
-                            color: isUnread ? AppColors.electric : AppColors.gunmetal,
+                            color: isUnread
+                                ? AppColors.electric
+                                : AppColors.gunmetal,
                             fontSize: 11,
-                            fontWeight: isUnread ? FontWeight.w700 : FontWeight.normal,
+                            fontWeight: isUnread
+                                ? FontWeight.w700
+                                : FontWeight.normal,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isUnread 
-                        ? 'Hey, did you see the new crypto update?' 
-                        : 'Sounds good, let\'s meet tomorrow.',
+                      lastMessageText,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
-                        color: isUnread ? AppColors.titanium : AppColors.gunmetal,
-                        fontWeight: isUnread ? FontWeight.w500 : FontWeight.w400,
+                        color: isUnread
+                            ? AppColors.titanium
+                            : AppColors.gunmetal,
+                        fontWeight: isUnread
+                            ? FontWeight.w500
+                            : FontWeight.w400,
                         fontSize: 13,
                       ),
                     ),
@@ -382,5 +468,36 @@ class _DesktopHeaderAction extends StatelessWidget {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0);
+  }
+}
+
+class _DesktopHeaderAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final bool isPrimary;
+
+  const _DesktopHeaderAction(this.icon, this.onTap, {this.isPrimary = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.electric : AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isPrimary ? AppColors.electric : AppColors.borderSubtle,
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: isPrimary ? AppColors.voidBg : AppColors.electric,
+        ),
+      ),
+    );
   }
 }
