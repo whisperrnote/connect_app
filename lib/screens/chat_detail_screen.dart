@@ -7,8 +7,15 @@ import '../widgets/glass_card.dart';
 import 'call_screen.dart';
 import '../core/theme/glass_route.dart';
 
+import '../core/models/conversation_model.dart';
+import '../core/models/message_model.dart' as model;
+import '../core/services/chat_service.dart';
+import '../core/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+
 class ChatDetailScreen extends StatefulWidget {
-  const ChatDetailScreen({super.key});
+  final Conversation conversation;
+  const ChatDetailScreen({super.key, required this.conversation});
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -16,29 +23,27 @@ class ChatDetailScreen extends StatefulWidget {
 
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final TextEditingController _controller = TextEditingController();
-  final List<Message> _messages = [
-    Message(
-      content: 'Hey there! How is the project going?',
-      isMe: false,
-      time: '10:00 AM',
-    ),
-    Message(
-      content:
-          'Making great progress. The Flutter port is coming along nicely.',
-      isMe: true,
-      time: '10:05 AM',
-    ),
-    Message(
-      content: 'That is awesome to hear! Did you implement the biometric auth?',
-      isMe: false,
-      time: '10:06 AM',
-    ),
-    Message(
-      content: 'Yes, just finished mirroring the UI flows.',
-      isMe: true,
-      time: '10:08 AM',
-    ),
-  ];
+  final ChatService _chatService = ChatService();
+  List<model.Message> _messages = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMessages();
+  }
+
+  Future<void> _fetchMessages() async {
+    try {
+      final messages = await _chatService.listMessages(widget.conversation.id);
+      setState(() {
+        _messages = messages;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +100,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'John Doe',
+                            widget.conversation.name ?? 'Secure Channel',
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -114,7 +119,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'Secure Channel',
+                                'ONLINE',
                                 style: GoogleFonts.inter(
                                   fontSize: 10,
                                   color: AppColors.gunmetal,
@@ -136,7 +141,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           Navigator.push(
                             context,
                             GlassRoute(
-                              page: const CallScreen(name: 'John Doe'),
+                              page: CallScreen(
+                                name: widget.conversation.name ?? 'Contact',
+                              ),
                             ),
                           );
                         },
@@ -155,15 +162,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
                 // Messages
                 Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(24),
-                    reverse: true,
-                    itemCount: _messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = _messages[_messages.length - 1 - index];
-                      return _buildMessageBubble(msg);
-                    },
-                  ),
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: AppColors.electric,
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(24),
+                          reverse: true,
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final msg = _messages[index];
+                            return _buildMessageBubble(msg);
+                          },
+                        ),
                 ),
 
                 // Input Area
@@ -208,18 +221,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       ),
                       const SizedBox(width: 12),
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           if (_controller.text.isNotEmpty) {
-                            setState(() {
-                              _messages.add(
-                                Message(
-                                  content: _controller.text,
-                                  isMe: true,
-                                  time: 'JUST NOW',
-                                ),
+                            final authProvider = Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            );
+                            final content = _controller.text;
+                            _controller.clear();
+                            try {
+                              await _chatService.sendMessage(
+                                conversationId: widget.conversation.id,
+                                senderId: authProvider.user!.$id,
+                                content: content,
                               );
-                              _controller.clear();
-                            });
+                              _fetchMessages();
+                            } catch (e) {
+                              // Handle error
+                            }
                           }
                         },
                         child: Container(
@@ -260,13 +279,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildMessageBubble(Message msg) {
+  Widget _buildMessageBubble(model.Message msg) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bool isMe = msg.senderId == authProvider.user?.$id;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Align(
-        alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: Column(
-          crossAxisAlignment: msg.isMe
+          crossAxisAlignment: isMe
               ? CrossAxisAlignment.end
               : CrossAxisAlignment.start,
           children: [
@@ -274,28 +296,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               constraints: const BoxConstraints(maxWidth: 280),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: msg.isMe ? AppColors.electric : AppColors.surface2,
+                color: isMe ? AppColors.electric : AppColors.surface2,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
-                  bottomLeft: msg.isMe
+                  bottomLeft: isMe
                       ? const Radius.circular(20)
                       : const Radius.circular(4),
-                  bottomRight: msg.isMe
+                  bottomRight: isMe
                       ? const Radius.circular(4)
                       : const Radius.circular(20),
                 ),
-                border: msg.isMe
-                    ? null
-                    : Border.all(color: AppColors.borderSubtle),
+                border: isMe ? null : Border.all(color: AppColors.borderSubtle),
               ),
               child: Text(
-                msg.content,
+                msg.content ?? '',
                 style: GoogleFonts.inter(
-                  color: msg.isMe ? AppColors.voidBg : AppColors.titanium,
+                  color: isMe ? AppColors.voidBg : AppColors.titanium,
                   fontSize: 14,
                   height: 1.5,
-                  fontWeight: msg.isMe ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
             ),
@@ -303,7 +323,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                msg.time.toUpperCase(),
+                msg.createdAt.toIso8601String(),
                 style: GoogleFonts.spaceMono(
                   fontSize: 8,
                   color: AppColors.gunmetal,
@@ -317,12 +337,4 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
       ),
     );
   }
-}
-
-class Message {
-  final String content;
-  final bool isMe;
-  final String time;
-
-  Message({required this.content, required this.isMe, required this.time});
 }

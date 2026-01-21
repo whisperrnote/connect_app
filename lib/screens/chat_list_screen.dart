@@ -357,19 +357,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildChatTile(BuildContext context, Chat chat, int index) {
+  Widget _buildChatTile(
+    BuildContext context,
+    Conversation conversation,
+    int index,
+  ) {
     final bool isUnread = index < 2; // Placeholder for unread state
-    final String lastMessageText =
-        chat.lastMessage?.content ?? 'Start a conversation';
-    final String participantName = chat.participantIds.length > 1
-        ? 'Channel'
-        : 'Contact'; // Placeholder
+    final String lastMessageText = 'Secure Channel'; // Placeholder
+    final String participantName =
+        conversation.name ??
+        (conversation.participants.length > 1 ? 'Group' : 'Contact');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          Navigator.push(context, GlassRoute(page: const ChatDetailScreen()));
+          Navigator.push(
+            context,
+            GlassRoute(page: ChatDetailScreen(conversation: conversation)),
+          );
         },
         borderRadius: BorderRadius.circular(20),
         child: GlassCard(
