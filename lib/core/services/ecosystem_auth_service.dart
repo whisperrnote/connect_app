@@ -9,9 +9,6 @@ class EcosystemAuthService {
   static const String _vaultKey = 'whisperr_ecosystem_vault';
   static const String _groupId = 'group.com.whisperr.ecosystem';
   
-  // Shared account name for Linux/Windows to ensure different apps look at the same entry
-  static const String _accountName = 'WhisperrEcosystem';
-
   final _storage = const FlutterSecureStorage(
     iOptions: IOSOptions(
       groupId: _groupId,
@@ -22,12 +19,9 @@ class EcosystemAuthService {
       accessibility: KeychainAccessibility.first_unlock,
     ),
     aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
       // sharedUserId in Manifest handles the OS-level permission
     ),
-    lOptions: LinuxOptions(
-      accountName: _accountName,
-    ),
+    lOptions: LinuxOptions(),
     wOptions: WindowsOptions(
       // Windows DPAPI is per-user, but we use a shared workspace to ensure
       // different binaries can potentially reach the same storage if configured.

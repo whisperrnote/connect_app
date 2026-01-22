@@ -1,4 +1,3 @@
-import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import '../services/appwrite_service.dart';
 import '../services/ecosystem_auth_service.dart';
