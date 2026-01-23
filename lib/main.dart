@@ -7,6 +7,7 @@ import 'core/providers/auth_provider.dart';
 import 'core/constants/app_constants.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const WhisperrConnectApp());
 }
 
