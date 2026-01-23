@@ -17,6 +17,7 @@ class ChatService {
           participants: [userId, 'other_user'],
           type: 'direct',
           name: 'Jane Doe',
+          createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         ),
       ];
@@ -46,7 +47,9 @@ class ChatService {
           conversationId: conversationId,
           senderId: 'other_user',
           content: 'Hello from mock mode!',
+          type: 'text',
           createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
     }
