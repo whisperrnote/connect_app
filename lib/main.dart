@@ -4,6 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/constants/app_constants.dart';
 
 void main() {
   runApp(const WhisperrConnectApp());
@@ -31,6 +32,9 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppConstants.useMockMode) {
+      return const HomeScreen();
+    }
     return Consumer<AuthProvider>(
       builder: (context, auth, _) {
         if (auth.isAuthenticated) {
