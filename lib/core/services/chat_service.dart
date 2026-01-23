@@ -3,12 +3,24 @@ import '../constants/appwrite_constants.dart';
 import 'appwrite_service.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
+import '../constants/app_constants.dart';
 
 class ChatService {
   final Databases _databases = AppwriteService().databases;
   final Realtime _realtime = AppwriteService().realtime;
 
   Future<List<Conversation>> listConversations(String userId) async {
+    if (AppConstants.useMockMode) {
+      return [
+        Conversation(
+          id: '1',
+          participants: [userId, 'other_user'],
+          type: 'direct',
+          name: 'Jane Doe',
+          updatedAt: DateTime.now(),
+        ),
+      ];
+    }
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
@@ -27,6 +39,17 @@ class ChatService {
   }
 
   Future<List<Message>> listMessages(String conversationId) async {
+    if (AppConstants.useMockMode) {
+      return [
+        Message(
+          id: '1',
+          conversationId: conversationId,
+          senderId: 'other_user',
+          content: 'Hello from mock mode!',
+          createdAt: DateTime.now(),
+        ),
+      ];
+    }
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConstants.databaseId,
