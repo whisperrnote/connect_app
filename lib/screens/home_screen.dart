@@ -1,156 +1,180 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import '../core/theme/colors.dart';
 import '../widgets/responsive_layout.dart';
+import '../widgets/bottom_nav.dart';
+import '../widgets/app_bar.dart';
+import '../widgets/sidebar.dart';
+import '../widgets/ecosystem_portal.dart';
+import '../widgets/ai_command_modal.dart';
 import 'chat_list_screen.dart';
+import 'discover_screen.dart';
+import 'call_screen.dart';
 import 'settings_screen.dart';
 import '../core/theme/glass_route.dart';
-import 'discover_screen.dart';
+import '../core/providers/auth_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  final List<Widget> _screens = [
+    const _HomePlaceholder(), // Replaces "/" or initial view
+    const ChatListScreen(),
+    const CallScreen(),
+    const _ProfilePlaceholder(),
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userInitials = authProvider.user?.name.substring(0, 1).toUpperCase() ?? 'U';
+
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColors.voidBg,
+      drawer: ResponsiveLayout.isDesktop(context) 
+        ? null 
+        : Drawer(
+            width: 280,
+            backgroundColor: AppColors.voidBg,
+            child: ConnectSidebar(
+              selectedIndex: _selectedIndex,
+              onTap: (index) {
+                setState(() => _selectedIndex = index);
+                Navigator.pop(context);
+              },
+            ),
+          ),
       body: ResponsiveLayout(
-        mobile: const ChatListScreen(),
-        desktop: _DesktopConnect(),
-      ),
-    );
-  }
-}
-
-class _DesktopConnect extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _DesktopSidebar(),
-        const VerticalDivider(width: 1, color: AppColors.borderSubtle),
-        const Expanded(child: ChatListScreen(isDesktop: true)),
-      ],
-    );
-  }
-}
-
-class _DesktopSidebar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 260,
-      color: AppColors.voidBg,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Row(
+        mobile: Stack(
+          children: [
+            Column(
               children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface2,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.borderSubtle),
+                ConnectAppBar(
+                  onMenuTap: () => _scaffoldKey.currentState?.openDrawer(),
+                  userInitials: userInitials,
+                  onEcosystemTap: () => showDialog(
+                    context: context,
+                    builder: (context) => const EcosystemPortal(),
                   ),
-                  child: const Icon(
-                    LucideIcons.messageSquare,
-                    color: AppColors.electric,
-                    size: 16,
+                  onAITap: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const AICommandModal(),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'WhisperrConnect',
-                  style: GoogleFonts.spaceGrotesk(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: AppColors.titanium,
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedIndex,
+                    children: _screens,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
-          _SidebarItem(
-            icon: LucideIcons.messageCircle,
-            label: 'Chats',
-            isActive: true,
-          ),
-          _SidebarItem(
-            icon: LucideIcons.globe,
-            label: 'Discover',
-            onTap: () => Navigator.push(
-              context,
-              GlassRoute(page: const DiscoverScreen()),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ConnectBottomNav(
+                currentIndex: _selectedIndex,
+                onTap: (index) => setState(() => _selectedIndex = index),
+              ),
             ),
-          ),
-          _SidebarItem(icon: LucideIcons.phone, label: 'Calls'),
-          _SidebarItem(icon: LucideIcons.users, label: 'Contacts'),
-          const Spacer(),
-          _SidebarItem(
-            icon: LucideIcons.settings,
-            label: 'Settings',
-            onTap: () => Navigator.push(
-              context,
-              GlassRoute(page: const SettingsScreen()),
+          ],
+        ),
+        desktop: Row(
+          children: [
+            ConnectSidebar(
+              selectedIndex: _selectedIndex,
+              onTap: (index) => setState(() => _selectedIndex = index),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
+            const VerticalDivider(width: 1, color: AppColors.borderSubtle),
+            Expanded(
+              child: Column(
+                children: [
+                  ConnectAppBar(
+                    onMenuTap: () {},
+                    userInitials: userInitials,
+                    onEcosystemTap: () => showDialog(
+                      context: context,
+                      builder: (context) => const EcosystemPortal(),
+                    ),
+                    onAITap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => const AICommandModal(),
+                    ),
+                  ),
+                  Expanded(
+                    child: IndexedStack(
+                      index: _selectedIndex,
+                      children: _screens.map((s) {
+                        if (s is ChatListScreen) {
+                          return const ChatListScreen(isDesktop: true);
+                        }
+                        return s;
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _SidebarItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback? onTap;
-
-  const _SidebarItem({
-    required this.icon,
-    required this.label,
-    this.isActive = false,
-    this.onTap,
-  });
+class _HomePlaceholder extends StatelessWidget {
+  const _HomePlaceholder();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.surface : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+    return const DiscoverScreen(); // The home usually shows discover/feed in connect
+  }
+}
+
+class _ProfilePlaceholder extends StatelessWidget {
+  const _ProfilePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(LucideIcons.user, size: 64, color: AppColors.gunmetal),
+          const SizedBox(height: 16),
+          Text(
+            'User Profile',
+            style: GoogleFonts.spaceGrotesk(
+              color: AppColors.gunmetal,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isActive ? AppColors.electric : AppColors.gunmetal,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                label,
-                style: GoogleFonts.inter(
-                  color: isActive ? AppColors.titanium : AppColors.gunmetal,
-                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-            ],
+          const SizedBox(height: 8),
+          Text(
+            'Your identity across the ecosystem.',
+            style: GoogleFonts.inter(
+              color: AppColors.carbon,
+              fontSize: 14,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

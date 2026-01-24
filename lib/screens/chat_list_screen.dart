@@ -39,160 +39,60 @@ class _ChatListScreenState extends State<ChatListScreen> {
         final conversations = await _chatService.listConversations(
           authProvider.user!.$id,
         );
-        setState(() {
-          _conversations = conversations;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _conversations = conversations;
+            _isLoading = false;
+          });
+        }
       } catch (e) {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    return Scaffold(
-      backgroundColor: AppColors.voidBg,
-      body: Stack(
-        children: [
-          // Ambient Glow
-          Positioned(
-            bottom: -100,
-            left: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.electric.withOpacity(0.05),
-                    Colors.transparent,
-                  ],
-                ),
+    return Stack(
+      children: [
+        // Ambient Glow
+        Positioned(
+          bottom: -100,
+          left: -100,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppColors.electric.withOpacity(0.05),
+                  Colors.transparent,
+                ],
               ),
             ),
           ),
+        ),
 
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                GlassCard(
-                  borderRadius: BorderRadius.zero,
-                  opacity: 0.8,
-                  border: const Border(
-                    bottom: BorderSide(color: AppColors.borderSubtle),
+        Column(
+          children: [
+            // Search & Filters Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MESSAGES',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -1,
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'COMMUNICATIONS',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.electric,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Messages',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: widget.isDesktop ? 36 : 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.titanium,
-                              height: 1.1,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          if (widget.isDesktop) ...[
-                            _DesktopHeaderAction(LucideIcons.messageSquare, () {
-                              // New message logic
-                            }, isPrimary: true),
-                            const SizedBox(width: 8),
-                          ],
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface2,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.borderSubtle),
-                            ),
-                            child: IconButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  GlassRoute(page: const DiscoverScreen()),
-                                );
-                              },
-                              icon: const Icon(
-                                LucideIcons.globe,
-                                size: 20,
-                                color: AppColors.electric,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                GlassRoute(page: const SettingsScreen()),
-                              );
-                            },
-                            child: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.electric,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.voidBg,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  authProvider.user?.name
-                                          .substring(0, 1)
-                                          .toUpperCase() ??
-                                      'U',
-                                  style: GoogleFonts.spaceGrotesk(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.voidBg,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Search
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    24,
-                    widget.isDesktop ? 32 : 24,
-                    24,
-                    16,
-                  ),
-                  child: GlassCard(
+                  const SizedBox(height: 16),
+                  GlassCard(
                     opacity: 0.4,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: TextField(
@@ -214,123 +114,75 @@ class _ChatListScreenState extends State<ChatListScreen> {
                       ),
                     ),
                   ),
-                ),
-
-                // Tabs
-                SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    children: [
-                      _buildTab('Direct', true),
-                      _buildTab('Groups', false),
-                      _buildTab('Secure', false),
-                      _buildTab('Archive', false),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // List
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _fetchChats,
-                    color: AppColors.electric,
-                    backgroundColor: AppColors.surface,
-                    child: _isLoading
-                        ? const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.electric,
-                            ),
-                          )
-                        : _conversations.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  LucideIcons.messageSquare,
-                                  size: 48,
-                                  color: AppColors.gunmetal,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No conversations yet.',
-                                  style: GoogleFonts.inter(
-                                    color: AppColors.gunmetal,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        : widget.isDesktop
-                        ? _buildDesktopGrid()
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            itemCount: _conversations.length,
-                            itemBuilder: (context, index) {
-                              return _buildChatTile(
-                                context,
-                                _conversations[index],
-                                index,
-                              );
-                            },
-                          ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: widget.isDesktop ? null : _buildMobileFAB(),
-    );
-  }
 
-  Widget _buildDesktopGrid() {
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 3.5,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: _conversations.length,
-      itemBuilder: (context, index) {
-        return _buildChatTile(context, _conversations[index], index);
-      },
-    );
-  }
+            // Tabs
+            SizedBox(
+              height: 40,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                children: [
+                  _buildTab('Direct', true),
+                  _buildTab('Groups', false),
+                  _buildTab('Secure', false),
+                  _buildTab('Archive', false),
+                ],
+              ),
+            ),
 
-  Widget _buildMobileFAB() {
-    return Container(
-      height: 64,
-      width: 64,
-      decoration: BoxDecoration(
-        color: AppColors.electric,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.electric.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        highlightElevation: 0,
-        child: const Icon(
-          LucideIcons.messageCircle,
-          color: AppColors.voidBg,
-          size: 28,
+            const SizedBox(height: 12),
+
+            // List
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _fetchChats,
+                color: AppColors.electric,
+                backgroundColor: AppColors.surface,
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.electric,
+                        ),
+                      )
+                    : _conversations.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              LucideIcons.messageSquare,
+                              size: 48,
+                              color: AppColors.gunmetal,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No conversations yet.',
+                              style: GoogleFonts.inter(
+                                color: AppColors.gunmetal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+                        itemCount: _conversations.length,
+                        itemBuilder: (context, index) {
+                          return _buildChatTile(
+                            context,
+                            _conversations[index],
+                            index,
+                          );
+                        },
+                      ),
+              ),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 
@@ -362,8 +214,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     Conversation conversation,
     int index,
   ) {
-    final bool isUnread = index < 2; // Placeholder for unread state
-    final String lastMessageText = 'Secure Channel'; // Placeholder
+    final bool isUnread = index < 2; // Placeholder
     final String participantName =
         conversation.name ??
         (conversation.participants.length > 1 ? 'Group' : 'Contact');
@@ -440,7 +291,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                           ),
                         ),
                         Text(
-                          '10:42 AM', // Placeholder
+                          '10:42 AM',
                           style: GoogleFonts.inter(
                             color: isUnread
                                 ? AppColors.electric
@@ -455,7 +306,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      lastMessageText,
+                      'Secure Channel',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
@@ -476,36 +327,5 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0);
-  }
-}
-
-class _DesktopHeaderAction extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool isPrimary;
-
-  const _DesktopHeaderAction(this.icon, this.onTap, {this.isPrimary = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: isPrimary ? AppColors.electric : AppColors.surface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isPrimary ? AppColors.electric : AppColors.borderSubtle,
-          ),
-        ),
-        child: Icon(
-          icon,
-          size: 16,
-          color: isPrimary ? AppColors.voidBg : AppColors.electric,
-        ),
-      ),
-    );
   }
 }
